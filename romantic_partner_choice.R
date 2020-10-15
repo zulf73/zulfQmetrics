@@ -1,6 +1,8 @@
 # correlation of v_f v_m
 .libPaths("C:\\Users\\Zulfi\\userLibs")
 library(ghyp)
+library(geometry)
+library(RGCCA)
 Bvals = c( 25, -8, -4, -3, -9,
            3, 10, 11, 5, -3,
            5, 10, 14, -3, -7,
@@ -210,3 +212,136 @@ sampleQ3<-function( ntimes ){
   }
   ans
 }
+
+
+######################################################
+# Exercise: Simulate some billions of big-five pairs
+# Create a 1024 x 1024 matrices DCount, DMatch
+# Transform (vf,vm) -> ( jung_vf, jung_vm )
+# For each pair determine ai=index(jung_vf), 
+#     aj=index(jung_vm) and qij = Q2(vf,vm)
+# if qij > 80th percentile 
+#    DCount[ ai, aj ] <- DCount[ai,aj]+1
+#    Dmatch[ ai, aj ] <- DNatch[ ai, aj]+ qij
+# Make Dmatch[ai,aj] into average
+
+
+###################################################
+# Zulf's jungTransfrom function
+#
+
+jung_bigfive<-base::matrix( nrow=4, ncol=5)
+
+# from McRae/Costa Reinterpreting MBTI paper 1989
+#
+jung_bigfive[1,]<-c( 0.16,-0.74, 0.03, -0.03, 0.08)
+jung_bigfive[2,]<-c( -0.06,0.1, 0.72, 0.04, -0.15)
+jung_bigfive[3,]<-c( 0.06,0.19, 0.02, 0.44, -0.15)
+jung_bigfive[4,]<-c( 0.11,0.15, 0.30, -0.06, -0.49)
+
+vector_by_gram_schmidt <- function( J0 ){
+  z <- rep(0.2,5) + 0.5
+  jx <- J0[1, ]/norm( J0[1,], type="2")
+  z <- z - dot( z, jx)*jx
+  jx <- J0[2, ]/norm( J0[2,], type="2")
+  z <- z - dot( z, jx)*jx
+  jx <- J0[3, ]/norm( J0[3,], type="2")
+  z <- z - dot( z, jx)*jx
+  jx <- J0[4, ]/norm( J0[4,], type="2")
+  z <- z - dot( z, jx)*jx
+  z <- 0.1*z /sum(abs(z))
+  z  
+}
+
+
+jungTransform<-function( ocean_matrix ){
+  J0 <- jung_bigfive
+  J <- base::matrix( 0, nrow = 5 , ncol = 5 )
+  J[ 1:4, ] <- J0
+  J[ 5, ] <- vector_by_gram_schmidt( J0 )
+  
+  #print(dim(J))
+  #print(ocean_matrix)
+  x <- matrix(ocean_matrix,ncol=1)
+  #print( J %*% x)
+  T <- 0.2 * J %*% x
+  out <- t(T)
+  #print(head(out))
+  mjv<-colMeans(out) + rep(0.2,5)
+  #print(mjv)
+  mjv
+}
+
+choice_lower_upper_interval<-function( x, lower=0, upper=1 ){
+  mid = lower + (upper-lower)/2.
+  ans <- 0
+  if (x > mid) {
+    ans <- 1
+  }
+}
+
+bin2dec <- function( binary_string ) {
+  apply( binary_string, function(x) base::strtoi(x, base = 2))
+}
+
+dec2bin <- function(x) 
+  paste(as.integer(rev(intToBits(x))), collapse = "")
+
+
+class_number<-function( jung_bits ){
+  sum( bin2dec(jung_bits))
+}
+
+subdivision_scheme_classification<-function( jung_vector, level){
+  v <- jung_vector*1024
+  jung_bit_vector = c( dec2bin(v[1]), dec2bin(v[2]),
+                       dec2bin(v[3]), dec2bin(v[4]), dec2bin(v[4]))
+  
+  n <- length(dec2bin(v[1]))
+  start <- n - level
+  jung_bit_vector <- sapply( jung_bit_vector, function(x) substr(x, start, n) )
+  print( jung_bit_vector )
+  class_number( bin2dec( jung_bit_vector) )
+}
+
+
+typeIndexFromJungVars<-function(jv){
+ ans <- subdivision_scheme_classification(jv,10)  
+}
+
+DCount <- matrix( rep(0, 1024*1024), nrow=1024, ncol=1024)
+DMatch <- matrix( rep(0, 1024*1024), nrow=1024, ncol=1024)
+
+jungTypeLargeQ2Sim<-function( ntimes ){
+  ans <- c()
+  for (k in 1:ntimes){
+    # now sim from fem, mal and print Q
+    vf <- rghyp( 1, prob.fem )
+    vm <- rghyp( 1, prob.mal )
+    dist <- Q2(vf,vm)
+    print(dist)
+    if ( dist > 0.20) {
+      jvf <- jungTransform( vf )
+      jvm <- jungTransform( vm )
+      ai <- typeIndexFromJungVars( jvf )
+      aj <- typeIndexFromJungVars( jvm )
+      
+      print('indices')
+      print(paste(ai,aj))
+      DCount[ai,aj] <- DCount[ ai, aj ] + 1
+      DMatch[ai,aj] <- DMatch[ ai, aj ] + dist
+      
+      ans <-append(ans, dist)
+    }
+  }
+  for ( ai in 1:1024 ){
+    for (aj in 1:1024 ){
+      DMatch[ai,aj]<-DMatch[ai,aj]/DCount[ai,aj]
+    }
+  }
+  tot <- sum(sum(DCount))
+  DCount <- DCount/tot
+  DCount
+}
+
+
