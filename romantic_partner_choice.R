@@ -3,6 +3,7 @@
 library(ghyp)
 library(geometry)
 library(RGCCA)
+library(ggplot2)
 Bvals = c( 25, -8, -4, -3, -9,
            3, 10, 11, 5, -3,
            5, 10, 14, -3, -7,
@@ -281,7 +282,11 @@ choice_lower_upper_interval<-function( x, lower=0, upper=1 ){
 }
 
 bin2dec <- function( binary_string ) {
-  apply( binary_string, function(x) base::strtoi(x, base = 2))
+  g <- function(x) base::strtoi(x, base = 2)
+  if (length( binary_string)==1) {
+    return(g(binary_string))
+  }
+  sapply( binary_string, g )
 }
 
 dec2bin <- function(x) 
@@ -289,19 +294,29 @@ dec2bin <- function(x)
 
 
 class_number<-function( jung_bits ){
-  sum( bin2dec(jung_bits))
+  z <-  sapply( jung_bits, function(q) bin2dec( tail(as.character(q), 2)))
+  
+  #print(z)
+  val <- z[1]+z[2]*4+z[3]*16+z[4]*32+z[5]*64
+  val
 }
 
 subdivision_scheme_classification<-function( jung_vector, level){
-  v <- jung_vector*1024
+  v <- jung_vector*16
   jung_bit_vector = c( dec2bin(v[1]), dec2bin(v[2]),
-                       dec2bin(v[3]), dec2bin(v[4]), dec2bin(v[4]))
+                       dec2bin(v[3]), dec2bin(v[4]), 
+                       dec2bin(v[5]))
   
-  n <- length(dec2bin(v[1]))
-  start <- n - level
+  n <- nchar(dec2bin(v[1]))
+  #print(paste("n=",n))
+  start <- n - level + 1
   jung_bit_vector <- sapply( jung_bit_vector, function(x) substr(x, start, n) )
-  print( jung_bit_vector )
-  class_number( bin2dec( jung_bit_vector) )
+  #print('processed length')
+  #print( nchar(jung_bit_vector[2] ))
+  #print('----pl ----')
+  ans<-class_number(jung_bit_vector)
+  #print(ans)
+  ans
 }
 
 
@@ -309,34 +324,41 @@ typeIndexFromJungVars<-function(jv){
  ans <- subdivision_scheme_classification(jv,10)  
 }
 
-DCount <- matrix( rep(0, 1024*1024), nrow=1024, ncol=1024)
-DMatch <- matrix( rep(0, 1024*1024), nrow=1024, ncol=1024)
+#DMatch <- matrix( rep(0, bN*bN), nrow=bN, ncol=bN)
 
 jungTypeLargeQ2Sim<-function( ntimes ){
   ans <- c()
+  bN <- 4086
+  DCount <- matrix( rep(0, bN*bN), nrow=bN, ncol=bN)
+  
   for (k in 1:ntimes){
     # now sim from fem, mal and print Q
     vf <- rghyp( 1, prob.fem )
     vm <- rghyp( 1, prob.mal )
-    dist <- Q2(vf,vm)
-    print(dist)
-    if ( dist > 0.20) {
+    dist <- Q2(vf,vm) + Q(vf,vm)
+    #print(dist)
+    if ( dist > 0.50+ 1.5) {
       jvf <- jungTransform( vf )
       jvm <- jungTransform( vm )
       ai <- typeIndexFromJungVars( jvf )
       aj <- typeIndexFromJungVars( jvm )
       
-      print('indices')
-      print(paste(ai,aj))
-      DCount[ai,aj] <- DCount[ ai, aj ] + 1
-      DMatch[ai,aj] <- DMatch[ ai, aj ] + dist
+      #print('indices')
+      #print(paste(ai,aj))
       
-      ans <-append(ans, dist)
-    }
-  }
-  for ( ai in 1:1024 ){
-    for (aj in 1:1024 ){
-      DMatch[ai,aj]<-DMatch[ai,aj]/DCount[ai,aj]
+      if ( ai < bN && aj < bN ) {
+        DCount[ai,aj] <- DCount[ ai, aj ] + 1
+      }  
+      
+      if ( k%%50 == 0){
+        convThresh <- 5e-1
+        convMetric <- sum(DCount>0)/(4086*4086)
+        print( convMetric)
+        if (convMetric > convThresh ){
+          #break
+        }
+      }
+      
     }
   }
   tot <- sum(sum(DCount))
@@ -344,4 +366,34 @@ jungTypeLargeQ2Sim<-function( ntimes ){
   DCount
 }
 
+df.from.matrix<-function( mtx ){
+  nr <- dim(mtx)[1]
+  nc <- dim(mtx)[2]
+  X0 <- 1;nr
+  Y0 <- 1:nc
+  X<-c()
+  Y<-c()
+  Z<-c()
+  for (i in 1:nr){
+    for (j in 1:nc){
+      X[(j-1)*nr+j]<-X0[i]
+      Y[(j-1)*nr+j]<-Y0[j]
+      Z[(j-1)*nr+j]<-mtx[i,j]
+    }
+  }
+  data.frame(X=X,Y=Y,Z=Z)
+}
 
+display_heatmap <- function( mtx ){
+  df <- df.from.matrix(mtx)  
+  ggplot(df, aes(X, Y, fill= Z)) + 
+    geom_tile() +
+    scale_fill_gradient(low="white", high="blue")
+  
+}
+
+
+#Build the palette and plot it
+#pal <- colorRampPalette(c("red", "yellow"), space = "rgb")
+#levelplot(dat, main="1000 X 1000 Levelplot", xlab="", ylab="", col.regions=pal(4), cuts=3, at=seq(0,1,0.5))
+    
