@@ -267,10 +267,10 @@ jungTransform<-function( ocean_matrix ){
   #print( J %*% x)
   T <- 0.2 * J %*% x
   out <- t(T)
-  #print(head(out))
-  mjv<-colMeans(out) + rep(0.2,5)
+  mjv<-colMeans(out) - rep(0.5,5)
+  out <- t(apply( out, 1, function(x) x - mjv ))
   #print(mjv)
-  mjv
+  out
 }
 
 choice_lower_upper_interval<-function( x, lower=0, upper=1 ){
@@ -328,13 +328,14 @@ typeIndexFromJungVars<-function(jv){
 
 jungTypeLargeQ2Sim<-function( ntimes ){
   ans <- c()
-  bN <- 4086
+  bN <- 2048
   DCount <- matrix( rep(0, bN*bN), nrow=bN, ncol=bN)
-  
+  vfs <- rghyp( ntimes, prob.fem )
+  vms <- rghyp( ntimes, prob.mal )
   for (k in 1:ntimes){
     # now sim from fem, mal and print Q
-    vf <- rghyp( 1, prob.fem )
-    vm <- rghyp( 1, prob.mal )
+    vf <- vfs[k,]
+    vm <- vms[k,]
     dist <- Q2(vf,vm) + Q(vf,vm)
     #print(dist)
     if ( dist > 0.50+ 1.5) {
@@ -352,7 +353,7 @@ jungTypeLargeQ2Sim<-function( ntimes ){
       
       if ( k%%50 == 0){
         convThresh <- 5e-1
-        convMetric <- sum(DCount>0)/(4086*4086)
+        convMetric <- sum(DCount>0)/(2048*2048)
         print( convMetric)
         if (convMetric > convThresh ){
           #break
