@@ -159,14 +159,43 @@ ftt <- data.matrix(read.table("fttraits.csv", sep=","))
 #scen = hpp.scenario(rate = 30, num.events = 300, num.sims = 100)
 
 
+# Realistic Poisson rate parameters for 
+# Marital spat frequency
+discreteRateDist <- c( 0.056, 
+                       0.144,
+                       0.266,
+                       0.522,
+                       0.012)
+
+sampleMaritalSpatFreq<-function(){
+  freqClass<- sample(x=c(1,2,3,4,5), size=1, replace=TRUE, 
+                     prob=discreteRateDist)
+  
+  rate <- 0
+  if ( freqClass == 1 ){
+    rate <- runif(n=1, min=0, max=0.25)  
+  } else if ( freqClass == 2){
+    rate <- runif(n=1, min=0.25, max=0.5)
+  } else if ( freqClass == 3){
+    rate <- runif(n=1, min=0.5, max = 1.0)
+  } else if ( freqClass == 4){
+    rate <- runif(n=1, min = 1.0, max=12.0 )
+  } else if ( freqClass == 5){
+    rate <- runif(n=1, min=12.0, max = 60.0)
+  }  
+  
+  ans <- 1/rate
+  ans
+}
+
 simRel <- function( lambda, totalTime = 20, xm, xf)
 {
   curTime <- 0
-  curRomanticCapital <- 200
+  curRomanticCapital <- 300
   romanticCapital <- c(curRomanticCapital)
   eventTimes <- c( 0 )
   while (curTime < totalTime ){
-    newTime <- rexp( n=1,rate = lambda )
+    newTime <- rexp( n=1,rate = 1/lambda )
     curTime <- curTime + newTime
     
     for (k in 1:15){
@@ -176,9 +205,9 @@ simRel <- function( lambda, totalTime = 20, xm, xf)
         eventTimes <- append( curTime, eventTimes )
         penalty <- abs(xm[k]) + abs(xf[k])
         penalty<-penalty*10
-        #print(penalty)
+        #print(paste('penalty:',penalty))
         curRomanticCapital <- curRomanticCapital - penalty 
-        romanticCapital <- append( curRomanticCapital, romanticCapital)
+        romanticCapital <- append( romanticCapital, curRomanticCapital)
       }
     }
     #print( paste( curTime, curRomanticCapital))
@@ -192,25 +221,31 @@ simRel <- function( lambda, totalTime = 20, xm, xf)
 
 
 Q3<-function( vm, vf){
-  xm <- abs((0.01/10.) *(mct + mtt) %*% vm)
-  xf <- abs((0.01/10.) * (fct + ftt) %*% vf)
-  sR <- simRel( lambda=100,totalTime=10, xm=xm, xf=xf)
+  xm <- abs((0.01/10.) * vm %*% t(mct + mtt))
+  xf <- abs((0.01/10.) * vf %*% t(fct + ftt))
+  
+  freqLambda <- sampleMaritalSpatFreq()
+  
+  # time is in months
+  sR <- simRel( lambda=freqLambda,totalTime=24, xm=xm, xf=xf)
   lateTimes<-sR$x[sR$y<0]
   ans<-lateTimes[1]
-  print(lateTimes)
+  print(ans)
   ans
 }
 
-
+###################################
+#
 sampleQ3<-function( ntimes ){
   ans <- c()
-  for (k in 1:ntimes){
-    # now sim from fem, mal and print Q
-    vf <- matrix(rghyp( 1, prob.fem ), ncol=1)
-    vm <- matrix(rghyp( 1, prob.mal ),ncol=1)
-    dist <- Q3(vf,vm)
+  # now sim from fem, mal and print Q
+  vf <- matrix(rghyp( ntimes, prob.fem ), ncol=5)
+  vm <- matrix(rghyp( ntimes, prob.mal ),ncol=5)
+  for (p in 1:ntimes){  
+    dist <- Q3(vf[p,],vm[p,])
     ans <-append(ans, dist)
   }
+  print(paste( mean(ans,na.rm=T), sd(ans,na.rm=T)))
   ans
 }
 
