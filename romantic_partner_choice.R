@@ -1,5 +1,5 @@
 # correlation of v_f v_m
-.libPaths("C:\\Users\\Zulfi\\userLibs")
+#.libPaths("C:\\Users\\Zulfi\\userLibs")
 library(ghyp)
 library(geometry)
 library(RGCCA)

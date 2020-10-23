@@ -1,6 +1,8 @@
 # Determine generalized hyperbolic parameters of Jung 
 # transformed big five using big five parameters
 # fitted parameters of big five
+library(ghyp)
+library(Matrix)
 lambda <- 1.000000
 alpha.bar <-  1.788706
 
@@ -205,21 +207,28 @@ metric <- function( a, b ){
   Q(a,b) + Q2(a,b)
 }
 
-nsample <- 1000
+nsample <- 1000000
 vf <- matrix(rghyp( nsample, bigfiveDist),ncol=5)
 vm <- matrix(rghyp( nsample, bigfiveDist), ncol=5)
-print("calling getPersonalityType")
-typesf <- getPersonalityType( vf, level = 8, ghfit )
-typesm <- getPersonalityType( vm, level = 8, ghfit )
-nm <-length(typesm)
-nf <-length(typesf)
-countMatrix <- matrix( rep(0,nm*nf),nrow=nm)
-tail_thresh <- 0.6 + 1.5
-for (p in 1:length(typesm)){
-    for (q in 1:length(typesf)){
-       dist <- metric( vm[p,], vf[q,])
-       if( dist > tail_thresh ) {
-           countMatrix[p,q] = countMatrix[p,q]+1
-        }
-    }
- }
+
+jvf <- jungTransform( vf )
+jvm <- jungTransform( vm )
+typesf <- getPersonalityType( jvf, level = 2, ghfit )
+typesm <- getPersonalityType( jvm, level = 2, ghfit )
+nm <- 2*4^5
+nf <- 2*4^5
+countMatrix <- Matrix( nrow=nm, data=0, sparse=T)
+tail_thresh <- 1.5
+for (p in 1:nsample){
+  dist <- metric( vm[p,], vf[p,])
+  if( dist > tail_thresh ) {
+    tp <- typesf[p]
+    tq <- typesm[p]
+    countMatrix[tp,tq] = countMatrix[tp,tq]+1
+  }
+  
+  if (p %% 100 == 0){
+    density <- sum(countMatrix>0)/(nf*nm)
+    print(paste(p, 'density=',density))
+  }
+}
