@@ -190,8 +190,9 @@ sampleMaritalSpatFreq<-function(){
 
 simRel <- function( lambda, totalTime = 20, xm, xf)
 {
+  print(paste())
   curTime <- 0
-  curRomanticCapital <- 300
+  curRomanticCapital <- 2000
   romanticCapital <- c(curRomanticCapital)
   eventTimes <- c( 0 )
   while (curTime < totalTime ){
@@ -227,10 +228,14 @@ Q3<-function( vm, vf){
   freqLambda <- sampleMaritalSpatFreq()
   
   # time is in months
-  sR <- simRel( lambda=freqLambda,totalTime=24, xm=xm, xf=xf)
+  sR <- simRel( lambda=freqLambda,totalTime=120, xm=xm, xf=xf)
   lateTimes<-sR$x[sR$y<0]
   ans<-lateTimes[1]
-  print(ans)
+  if (is.na(ans)){
+    #print( tail(sR$x, 5))
+    ans<-tail(sR$x,2)[1]
+  }
+  #print(ans)
   ans
 }
 
