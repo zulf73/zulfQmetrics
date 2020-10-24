@@ -104,15 +104,12 @@ print("fitting complete")
 # }
 # Use S4 OOP
 indexInOrderedVec<-function( val, vec ){
-  idx <- 1
-  n <- length(vec)
-  while (idx <= n && val<vec[idx]){
-    idx <- idx + 1
+  idx <- length(vec)
+  w <-which( vec > val)
+  if (length(w)>0){
+    idx <- head(w , 1)
   }
-  if (idx <= length(vec)){
-    return(idx)
-  }
-  return(0)
+  idx
 }
 
 univariateQuantiles<-function( ncuts, distrib ){
@@ -168,7 +165,7 @@ lambda.get<-function(sgh){
 
 getPersonalityType <- function( bfv, level, ghdist )
 {
-  sgh <- ghyp.fit.info(ghfit)
+  sgh <- ghyp.fit.info(ghdist)
   # determine cuts
   ncuts <- 2^level
   cuts <- matrix(rep(0, 5*ncuts),nrow=5)
@@ -179,10 +176,12 @@ getPersonalityType <- function( bfv, level, ghdist )
   g <- gamma.get(sgh)
   for (j in 1:5){
     m <- M[j]
-    s <- C[j,j]
+    s <- sqrt(C[j,j])
     g <- gamma[j]
     dist <- ghyp(mu=m,sigma=s, gamma=g,lambda=l,alpha.bar=a)
-    cuts[j,]<-univariateQuantiles( ncuts, dist)
+    dcuts <-univariateQuantiles( ncuts, dist)
+    dcuts[is.infinite(dcuts)]<-2.0
+    cuts[j,]<-dcuts
   }
   
   # use the cuts to determine the indices
@@ -196,7 +195,7 @@ getPersonalityType <- function( bfv, level, ghdist )
     x <- bfv[vr, ]
     for (j in 1:5){
       idx[j]<-indexInOrderedVec( x[j], cuts[j,])
-      ans <- ans + r^j * idx[j]
+      ans <- ans + r^(j-1) * idx[j]
     }
     out[vr] <- ans
   }
@@ -211,23 +210,28 @@ nsample <- 1000000
 vf <- matrix(rghyp( nsample, bigfiveDist),ncol=5)
 vm <- matrix(rghyp( nsample, bigfiveDist), ncol=5)
 
-jvf <- jungTransform( vf )
-jvm <- jungTransform( vm )
+jvf <- t(jungTransform( vf ))
+jvm <- t(jungTransform( vm ))
 typesf <- getPersonalityType( jvf, level = 2, ghfit )
 typesm <- getPersonalityType( jvm, level = 2, ghfit )
 nm <- 2*4^5
 nf <- 2*4^5
-countMatrix <- Matrix( nrow=nm, data=0, sparse=T)
+countMatrix <- Matrix( nrow=nm, ncol=nf, data=0, sparse=T)
+
 tail_thresh <- 1.5
 for (p in 1:nsample){
   dist <- metric( vm[p,], vf[p,])
   if( dist > tail_thresh ) {
     tp <- typesf[p]
     tq <- typesm[p]
-    countMatrix[tp,tq] = countMatrix[tp,tq]+1
+    if ((!is.na(tp)) && (!is.na(tq)) 
+        && tp <= nm && tq <= nm ){
+      #print(paste(tp,tq,dist))
+      countMatrix[tp,tq] = countMatrix[tp,tq]+1
+    }
   }
   
-  if (p %% 100 == 0){
+  if (p %% 200 == 0){
     density <- sum(countMatrix>0)/(nf*nm)
     print(paste(p, 'density=',density))
   }
