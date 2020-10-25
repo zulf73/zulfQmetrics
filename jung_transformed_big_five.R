@@ -206,7 +206,7 @@ metric <- function( a, b ){
   Q(a,b) + Q2(a,b)
 }
 
-nsample <- 1000000
+nsample <- 10
 vf <- matrix(rghyp( nsample, bigfiveDist),ncol=5)
 vm <- matrix(rghyp( nsample, bigfiveDist), ncol=5)
 
