@@ -5,6 +5,27 @@
 
 library(data.table)
 library(dplyr)
+
+# y = t(A)x + e
+# then A = cov(xy)/cov(xx)
+linear_regr_transform<-function( corrxy,x ){
+  cx <- cov(x)
+  icx <- inv(cx)
+  sx <- sqrt(diag(cx))
+  sy <- rep(1, dim(corrxy)[1]) # rows
+  covxy <-  corrxy
+  for (j in 1:dim(corrxy)[1]){
+    for (k in 1:dim(corrxy)[2]){
+      covxy[j,k] <- corrxy[j,k]*sx[j]*sy[k]
+    }
+  }
+  A <- covxy %*% icx
+  y <- A %*% x
+  y
+}
+
+
+
 facet_names<-c(
   "Anxiety",
   "AngryHostility",
@@ -110,7 +131,7 @@ facet_mtx <-matrix( facet_data, ncol=5)
 
 
 facet_profile<-function( v, t=1){
-  w0 <- (facet_mtx / 100.) %*% matrix(v,ncol=1)
+  w0<-linear_regr_transform( facet_mtx/100., matrix(v,ncol=1))
   w <- t(w0)
   out<-list(type=t)
   for (j in 1:30){
@@ -167,7 +188,7 @@ narrative_from_binary<-function(binary_code, name="Tony "){
     }
     if (code==0 || code==1){
       if (code==1){
-         out <- paste(out, name, facet_state[[j]][[2]],". ",sep="", collapse="")
+         out <- paste(out, name," ", facet_state[[j]][[2]],". ",sep="", collapse="")
       }
     }
   }
