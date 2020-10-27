@@ -23,6 +23,26 @@ gamma <- c( -0.030213436, 0.002608754, -0.028674928, -0.031492846, -0.043415295)
 
 bigfiveDist <- ghyp(lambda=1, alpha.bar=alpha.bar, mu=mu, sigma=sigmaBase, gamma=gamma)
 
+
+# y = t(A)x + e
+# then A = cov(xy)/cov(xx)
+linear_regr_transform<-function( corrxy,x ){
+  cx <- cov(x)
+  icx <- inv(cx)
+  sx <- sqrt(diag(cx))
+  sy <- rep(1, dim(corrxy)[1]) # rows
+  covxy <-  corrxy
+  for (j in 1:dim(corrxy)[1]){
+    for (k in 1:dim(corrxy)[2]){
+      covxy[j,k] <- corrxy[j,k]*sx[j]*sy[k]
+    }
+  }
+  #A <- covxy %*% icx
+  A <- corrxy %*% icx
+  y <-  x %*% t(A)
+  y
+}
+
 ###################################################
 # Zulf's jungTransfrom function
 #
@@ -56,15 +76,20 @@ jungTransform<-function( ocean_matrix ){
   J <- base::matrix( 0, nrow = 5 , ncol = 5 )
   J[ 1:4, ] <- J0
   J[ 5, ] <- vector_by_gram_schmidt( J0 )
-  J <- J + diag(5)
+  #J <- J + diag(5)
   #print(dim(J))
   x <- matrix(ocean_matrix, ncol=5)
   print(head(x))
   #print( J %*% x)
   #print(dim(x))
-  T <- (0.2 *  x) %*% J
+  
+  #T <- (0.2 *  x) %*% J
+  T <- 0.2*linear_regr_transform( t(J), x)
   print(dim(T))
-  out <- T
+  maxT <- max(max(T))  
+  minT <-min(min(T))
+  out <- (T-minT)/(maxT-minT)
+  #out <- T
   print(head(out))
   mjv<-colMeans(out) - rep(0.5,5)
   out <- apply( out, 1, function(z) z - mjv )
@@ -206,7 +231,7 @@ metric <- function( a, b ){
   Q(a,b) + Q2(a,b)
 }
 
-nsample <- 10
+nsample <- 100000
 vf <- matrix(rghyp( nsample, bigfiveDist),ncol=5)
 vm <- matrix(rghyp( nsample, bigfiveDist), ncol=5)
 

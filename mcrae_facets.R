@@ -3,26 +3,10 @@
 # OCEAN variable then consider holistic
 # narrative self in terms of these values
 
+library(matlib)
 library(data.table)
 library(dplyr)
 
-# y = t(A)x + e
-# then A = cov(xy)/cov(xx)
-linear_regr_transform<-function( corrxy,x ){
-  cx <- cov(x)
-  icx <- inv(cx)
-  sx <- sqrt(diag(cx))
-  sy <- rep(1, dim(corrxy)[1]) # rows
-  covxy <-  corrxy
-  for (j in 1:dim(corrxy)[1]){
-    for (k in 1:dim(corrxy)[2]){
-      covxy[j,k] <- corrxy[j,k]*sx[j]*sy[k]
-    }
-  }
-  A <- covxy %*% icx
-  y <- A %*% x
-  y
-}
 
 
 
