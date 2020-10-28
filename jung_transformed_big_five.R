@@ -3,6 +3,7 @@
 # fitted parameters of big five
 library(ghyp)
 library(Matrix)
+library(matlib)
 lambda <- 1.000000
 alpha.bar <-  1.788706
 

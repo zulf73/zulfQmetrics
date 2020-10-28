@@ -1,5 +1,6 @@
 # indices of matrix in descending order
 library(tidyverse)
+library(dplyr)
 
 sorted_indices<-function( mtx ){
   v <- as.vector(mtx)
@@ -15,34 +16,34 @@ sorted_indices<-function( mtx ){
 }
 
 
-# assume each list has same names 
-# put them on rows
-list_to_df <- function( L ){
-  
-}
-
 paired_rows_df <- function( pairs, df ){
-  outdf <- data.frame()
+  outdf <- NULL
   n <- nrow(pairs)
   for ( j in 1:n ){
     x <- pairs$x[j]
     y <- pairs$y[j]
+    z <- pairs$z[j]
     #print(paste('coords',x,y))
-    first <- df[ which( df$type == x), ]
-    second <- df[ which( df$type == y), ]
+    first <- df[ df$type == x, ]
+    second <- df[ df$type == y, ]
     #print(first)
     #print(second)
     if ( length(first) > 0 && length(second) > 0){
-    new_row <- cbind( unlist(first), 
-                      unlist(second) ) 
-    tryCatch(
-      { 
-        outdf <- rbind( outdf, new_row )
-      }, error = function (e){} )
+      # hack just put in the target row
+        new_row <- bind_rows( unlist(first) - unlist(second) )
+        names(new_row)<-names(df)
+        new_row["target"] <- z
+        #print(typeof(new_row))
+        #print(length(new_row))
+        print(dim(outdf))
+        if (is.null(outdf)){
+          outdf<-as_tibble(new_row)
+        } else {
+            outdf <- outdf %>% add_row( new_row )
+        }
     }
   }
-  # hack just put in the target row
-  outdf["target"] <- pairs$z
+  print(dim(outdf))
   outdf
 }
 

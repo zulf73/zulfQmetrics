@@ -115,7 +115,8 @@ facet_mtx <-matrix( facet_data, ncol=5)
 
 
 facet_profile<-function( v, t=1){
-  w0<-linear_regr_transform( facet_mtx/100., matrix(v,ncol=1))
+  #w0<-linear_regr_transform( facet_mtx/100., matrix(v,ncol=1))
+  w0 <- (facet_mtx/100.) %*% matrix(v,ncol=1)
   w <- t(w0)
   out<-list(type=t)
   for (j in 1:30){
