@@ -6,6 +6,7 @@
 library(matlib)
 library(data.table)
 library(dplyr)
+library(ghyp)
 
 
 
@@ -206,3 +207,4 @@ facet_type_means <- df %>%
 ftm <- center_and_rescale(facet_type_means)
 #ggplot( data=ftm, aes(x=TenderMindedness)) +geom_histogram()
 bin_ftm<-binarise(ftm)
+

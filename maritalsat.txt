@@ -1,0 +1,163 @@
+> model <- lm( target ~ . - target-type, data=tcm)
+> summary(model)
+
+Call:
+lm(formula = target ~ . - target - type, data = tcm)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-9.6827 -0.0115  0.0000  0.0035 24.1038 
+
+Coefficients:
+                    Estimate Std. Error t value
+(Intercept)           -64688       3789 -17.073
+Anxiety               103773       8573  12.105
+AngryHostility        153791       4659  33.012
+Depression          -1367693      85562 -15.985
+Selfconsciousness      20777      26623   0.780
+Impulsiveness         -87974       3232 -27.219
+Vulnerability         160566       5202  30.869
+Warmth               -603710      16198 -37.272
+Gregariousnness      3012067      54831  54.934
+Assertiveness         378785       7705  49.164
+Activity            -1013154      18601 -54.467
+ExcitementSeeking    1199255      47428  25.286
+PositiveEmotions     -667196      24946 -26.746
+Fantasy               613881      46939  13.078
+Aesthetics           -864926      25811 -33.510
+Feeling              1124269      21300  52.784
+Actions               110289       4671  23.613
+Ideas                 712530      13350  53.374
+Values               -876543      17707 -49.503
+Trust                -467623      11289 -41.424
+Straightforwardness    64261       2358  27.248
+Altruism             -919396      24771 -37.116
+Compliance            642861      16500  38.962
+Modesty              -922013      18860 -48.888
+TenderMindedness      729935      21054  34.670
+Competence           -923502      13308 -69.393
+Order                -282505      23115 -12.222
+Dutifulness          -268477       8936 -30.046
+AchievementStriving -1269219      47651 -26.636
+SelfDiscipline         41573       8426   4.934
+Deliberation         1530010      21662  70.631
+                    Pr(>|t|)    
+(Intercept)          < 2e-16 ***
+Anxiety              < 2e-16 ***
+AngryHostility       < 2e-16 ***
+Depression           < 2e-16 ***
+Selfconsciousness      0.435    
+Impulsiveness        < 2e-16 ***
+Vulnerability        < 2e-16 ***
+Warmth               < 2e-16 ***
+Gregariousnness      < 2e-16 ***
+Assertiveness        < 2e-16 ***
+Activity             < 2e-16 ***
+ExcitementSeeking    < 2e-16 ***
+PositiveEmotions     < 2e-16 ***
+Fantasy              < 2e-16 ***
+Aesthetics           < 2e-16 ***
+Feeling              < 2e-16 ***
+Actions              < 2e-16 ***
+Ideas                < 2e-16 ***
+Values               < 2e-16 ***
+Trust                < 2e-16 ***
+Straightforwardness  < 2e-16 ***
+Altruism             < 2e-16 ***
+Compliance           < 2e-16 ***
+Modesty              < 2e-16 ***
+TenderMindedness     < 2e-16 ***
+Competence           < 2e-16 ***
+Order                < 2e-16 ***
+Dutifulness          < 2e-16 ***
+AchievementStriving  < 2e-16 ***
+SelfDiscipline      8.38e-07 ***
+Deliberation         < 2e-16 ***
+---
+Signif. codes:  
+0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+
+> tcm$target <- log(centroid_and_marsat$target)
+> model <- lm( target ~ . - target-type, data=tcm)
+> summary(model)
+
+Call:
+lm(formula = target ~ . - target - type, data = tcm)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.87916 -0.00134 -0.00011 -0.00003  1.85690 
+
+Coefficients:
+                     Estimate Std. Error t value
+(Intercept)           83.6647     4.1768  20.031
+Anxiety                9.4558     1.7181   5.504
+AngryHostility        27.4649     2.8198   9.740
+Depression          -751.0347    38.7159 -19.399
+Selfconsciousness    103.2911    10.1205  10.206
+Impulsiveness         62.4096     4.7891  13.031
+Vulnerability        122.3910    12.5057   9.787
+Warmth               -24.3903     4.6937  -5.196
+Gregariousnness       53.1105     8.0314   6.613
+Assertiveness         -3.3054     3.1358  -1.054
+Activity             -80.0007     5.9358 -13.478
+ExcitementSeeking    212.8942    12.1498  17.522
+PositiveEmotions     123.9623    13.4164   9.240
+Fantasy             -400.2671    23.5835 -16.972
+Aesthetics           280.2835    14.3088  19.588
+Feeling              -22.0398     5.2710  -4.181
+Actions                0.9662     2.1259   0.454
+Ideas                -23.0692     9.9037  -2.329
+Values               -32.3107     6.2552  -5.165
+Trust               -339.3387    14.1989 -23.899
+Straightforwardness  -69.8599     7.8143  -8.940
+Altruism            -189.8013    16.2080 -11.710
+Compliance             8.3298     4.8170   1.729
+Modesty              -28.7404     1.4891 -19.300
+TenderMindedness    -131.3263     6.7623 -19.420
+Competence            24.2960    15.1922   1.599
+Order                 24.4907     7.3864   3.316
+Dutifulness           38.2722     7.5259   5.085
+AchievementStriving  789.5222    43.3568  18.210
+SelfDiscipline        46.7063     5.8428   7.994
+Deliberation          85.4837    10.6840   8.001
+                    Pr(>|t|)    
+(Intercept)          < 2e-16 ***
+Anxiety             3.94e-08 ***
+AngryHostility       < 2e-16 ***
+Depression           < 2e-16 ***
+Selfconsciousness    < 2e-16 ***
+Impulsiveness        < 2e-16 ***
+Vulnerability        < 2e-16 ***
+Warmth              2.13e-07 ***
+Gregariousnness     4.24e-11 ***
+Assertiveness       0.291906    
+Activity             < 2e-16 ***
+ExcitementSeeking    < 2e-16 ***
+PositiveEmotions     < 2e-16 ***
+Fantasy              < 2e-16 ***
+Aesthetics           < 2e-16 ***
+Feeling             2.96e-05 ***
+Actions             0.649513    
+Ideas               0.019887 *  
+Values              2.51e-07 ***
+Trust                < 2e-16 ***
+Straightforwardness  < 2e-16 ***
+Altruism             < 2e-16 ***
+Compliance          0.083837 .  
+Modesty              < 2e-16 ***
+TenderMindedness     < 2e-16 ***
+Competence          0.109843    
+Order               0.000922 ***
+Dutifulness         3.83e-07 ***
+AchievementStriving  < 2e-16 ***
+SelfDiscipline      1.67e-15 ***
+Deliberation        1.58e-15 ***
+---
+Signif. codes:  
+0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.1424 on 4260 degrees of freedom
+Multiple R-squared:  0.9459,	Adjusted R-squared:  0.9455 
+F-statistic:  2484 on 30 and 4260 DF,  p-value: < 2.2e-16

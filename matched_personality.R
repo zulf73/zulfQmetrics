@@ -1,6 +1,7 @@
 # indices of matrix in descending order
 library(tidyverse)
 library(dplyr)
+library(glmnet)
 
 sorted_indices<-function( mtx ){
   v <- as.vector(mtx)
@@ -48,7 +49,40 @@ paired_rows_df <- function( pairs, df ){
 }
 
 # we have pairs_match and ftm
-pairs_match <- sorted_indices( countMatrix)
+pairs_match <- sorted_indices( data.matrix(countMatrix))
 centroid_and_marsat <- paired_rows_df( 
   pairs_match %>% map_df(as_tibble), 
   ftm)
+
+
+#########################################
+# Fit linear models and penalized ones
+tcm <- exp(-abs(centroid_and_marsat))
+# Fit models here on tcm
+
+tcm_predictors <- data.matrix(tcm[,!names(tcm) %in% c("type","target")])
+tcm_response <- data.matrix(tcm[,"target"])
+
+X <- tcm_predictors
+y <- tcm_response
+
+glm_mod<-cv.glmnet(scale(X), y, family="gaussian", standardize=F, type.measure = "mse",
+                   nfolds=5,alpha=.5)
+c<-coef(glm_mod,s='lambda.min',exact=TRUE)
+inds<-which(c!=0)
+variables<-row.names(c)[inds]
+variables<-variables[variables %in% '(Intercept)']
+#rsq = 1 - glm_mod$cvm/var(y)
+#plot(glm_mod$lambda,rsq)
+varImp <- function(object, lambda = NULL, ...) {
+  
+  ## skipping a few lines
+  
+  beta <- predict(object, s = lambda, type = "coef")
+  if(is.list(beta)) {
+    out <- do.call("cbind", lapply(beta, function(x) x[,1]))
+    out <- as.data.frame(out, stringsAsFactors = TRUE)
+  } else out <- data.frame(Overall = beta[,1])
+  out <- abs(out[rownames(out) != "(Intercept)",,drop = FALSE])
+  out
+}

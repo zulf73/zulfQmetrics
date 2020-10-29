@@ -232,6 +232,7 @@ metric <- function( a, b ){
   Q(a,b) + Q2(a,b)
 }
 
+do_not_run <- function(){
 nsample <- 100000
 vf <- matrix(rghyp( nsample, bigfiveDist),ncol=5)
 vm <- matrix(rghyp( nsample, bigfiveDist), ncol=5)
@@ -261,4 +262,5 @@ for (p in 1:nsample){
     density <- sum(countMatrix>0)/(nf*nm)
     print(paste(p, 'density=',density))
   }
+}
 }
