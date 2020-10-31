@@ -141,23 +141,6 @@ facet_transform<-function( v, post=""){
   ans
 }
 
-mpq_mtx_vals <- c( 
-  31, 12, -39,  10, 31,
-  42, -26, -16, 4, 35,
-  7, -7, -9, 42, 32,
-  61, 27, 3, 3, 10,
-  -8, -12, 73, -2, -2,
-  0, -50, 11, -17, -7,
-  -10, -21, 27, -13, 9,
-  -11, 3, -8, 52, -24,
-  4, 15, 23, 15, -35,
-  10, 14, -6, 23, -28,
-  4, -13, 9, 11, 40)
-
-mpq_mtx <- matrix( data=mpq_mtx_vals, ncol=5)
-
-
-
 
 # We want to sample from big five and then use
 # Richard Robbins correlations to marital 
@@ -165,7 +148,23 @@ mpq_mtx <- matrix( data=mpq_mtx_vals, ncol=5)
 # satifaction
 
 robbins_marital_sat<-function( bfv ){
-  x <- matrix( bfv, nrow=5)
+  
+  mpq_mtx_vals <- c( 
+    31, 10, 31, 12, -39,
+    35, 4, 42, -26, -16,
+    32, 42, 7, -7, -9,
+    10, 3, 61, 27, 3,
+    -2, -2, -8, -12, 73,
+    -7, -17, 0, -50, 11,
+    9, -13, -10, -21, 27,
+    -24, 52, -11, 3, -8,
+    -35, 15, 4, 15, 23,
+    -28, 23, 10, 14, -6,
+    40, 11, 4, -13, 9 )
+  
+  mpq_mtx <- matrix( data=mpq_mtx_vals, ncol=5)
+  
+   x <- matrix( bfv, nrow=5)
   A <-mpq_mtx/100.
   y <-A %*% x
   pem <- mean(y[1:4])
@@ -193,19 +192,19 @@ create_marsat_dataset <- function( nsamples ){
   for (j in 1:nsamples){
     data_mtx[j,1:5]<-bff[j,]
     data_mtx[j,6:10]<-bfm[j,]
-    data_mtx[j,11:40] <- exp(- abs(
-        facets_f[j,] - facets_m[j,]))
+    data_mtx[j,11:40] <-
+        exp(-abs(facets_f[j,] -facets_m[j,]))
     avg_bf <- 0.5*(bff[j,]+bfm[j,])
     data_mtx[j,41] <-robbins_marital_sat(avg_bf)
   }
   data_mtx
 }
 
-df <- data.frame( create_marsat_dataset(10000) )
+df <- data.frame( create_marsat_dataset(100000) )
 names(df)<-c("o1","c1","e1","a1", "n1",
              "o2","c2","e2","a2", "n2",
              facet_names, "target")
-mod <- lm(  exp(target) ~ . - o1 - c1 -e1 -a1 -n1 - o2 -c2 -e2 -a2 -n2 -target, 
+mod <- lm(  target ~ . -target, 
             data=df )
 summary(mod)
 
