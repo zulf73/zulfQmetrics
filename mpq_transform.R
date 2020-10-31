@@ -1,7 +1,7 @@
 # MPQ Big Five Corr
 library(ghyp)
 library(glmnet)
-
+library(geometry)
 
 construct_big_five_dist <- function(){
   library(ghyp)
@@ -143,11 +143,12 @@ facet_transform<-function( v, post=""){
 
 
 # We want to sample from big five and then use
-# Richard Robbins correlations to marital 
-# satisfaction to construct a proxy for marital
-# satifaction
+# Richard Robins, Avshalom Caspi and Terrie E. Moffitt, "Two Personalities, One Relationship: 
+# Both Partners' Personality Traits Shape the Quality
+# of Their Relationship" Journal of Personality and Social Psychology, 2000, 
+# Vol. 79 (2) p. 251-259
 
-robbins_marital_sat<-function( bfv ){
+robins_marital_sat<-function( vf, vm ){
   
   mpq_mtx_vals <- c( 
     31, 10, 31, 12, -39,
@@ -163,18 +164,22 @@ robbins_marital_sat<-function( bfv ){
     40, 11, 4, -13, 9 )
   
   mpq_mtx <- matrix( data=mpq_mtx_vals, ncol=5)
-  
-   x <- matrix( bfv, nrow=5)
+
   A <-mpq_mtx/100.
-  y <-A %*% x
-  pem <- mean(y[1:4])
-  nem <- mean(y[5:7])
-  con <- mean(y[8:10])
-  abp <- y[11]
-  # Let's look at the structural equation for
-  # marital satisfaction
-  ans <- pem*(0.12)+nem*(-0.23) + con*(0.17) 
-        + abp*(0.0)
+  
+  xf <- matrix( vf, nrow=5)
+  yf <-A %*% xf
+
+  xm <- matrix( vm, nrow=5)
+  ym <-A %*% xm
+  
+  male_sat_vec <- c(4,-7,-3,4,-22,-4,
+                           -14,11,-2,-5)
+  fem_sat_vec <- c(11,7,0,16,-7,-18,
+                          -6,16,-6,11)
+  male_sat <- geometry::dot(yf[1:10],male_sat_vec)/100.
+  fem_sat <- geometry::dot(ym[1:10],fem_sat_vec)/100.
+  ans<- 0.5*(male_sat + fem_sat)
   ans
 }
 
@@ -194,17 +199,16 @@ create_marsat_dataset <- function( nsamples ){
     data_mtx[j,6:10]<-bfm[j,]
     data_mtx[j,11:40] <-
         exp(-abs(facets_f[j,] -facets_m[j,]))
-    avg_bf <- 0.5*(bff[j,]+bfm[j,])
-    data_mtx[j,41] <-robbins_marital_sat(avg_bf)
+    data_mtx[j,41] <-robins_marital_sat(bff[j,],bfm[j,])
   }
   data_mtx
 }
 
-df <- data.frame( create_marsat_dataset(100000) )
+df <- data.frame( create_marsat_dataset(100) )
 names(df)<-c("o1","c1","e1","a1", "n1",
              "o2","c2","e2","a2", "n2",
              facet_names, "target")
-mod <- lm(  target ~ . -target, 
+mod <- lm(  target ~ .-o1-c1-e1-a1-n1-o2-c2-e2-a2-n2 -target, 
             data=df )
 summary(mod)
 
