@@ -71,7 +71,7 @@ glm_mod<-cv.glmnet(scale(X), y, family="gaussian", standardize=F, type.measure =
 c<-coef(glm_mod,s='lambda.min',exact=TRUE)
 inds<-which(c!=0)
 variables<-row.names(c)[inds]
-variables<-variables[variables %in% '(Intercept)']
+variables<-variables[variables not %in% '(Intercept)']
 #rsq = 1 - glm_mod$cvm/var(y)
 #plot(glm_mod$lambda,rsq)
 varImp <- function(object, lambda = NULL, ...) {
