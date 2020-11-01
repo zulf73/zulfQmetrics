@@ -245,7 +245,7 @@ nm <- 2*4^5
 nf <- 2*4^5
 countMatrix <- Matrix( nrow=nm, ncol=nf, data=0, sparse=T)
 
-tail_thresh <- 1.5
+tail_thresh <- -0.5
 for (p in 1:nsample){
   dist <- metric( vm[p,], vf[p,])
   if( dist > tail_thresh ) {
@@ -263,4 +263,5 @@ for (p in 1:nsample){
     print(paste(p, 'density=',density))
   }
 }
+
 }

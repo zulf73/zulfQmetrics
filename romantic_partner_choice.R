@@ -128,7 +128,11 @@ Q2 <- function( vf, vm ) {
   w <- B0 %*% (vd)
   nw <- length(w)
   #print(nw)
-  ans <-  exp(- norm(w,type="1")/length(w))
+  similarity <-  exp(- norm(w,type="1")/length(w))
+  # Malouf et. al. (2009) meta-analysis
+  individual <- 0.5*dot( vf + vm, 
+                         c( 0.03, 0.12, 0.06, 0.15, -0.22 ))
+  ans <- similarity + individual
   ans
 }
 
