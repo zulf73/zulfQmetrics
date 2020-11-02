@@ -86,11 +86,11 @@ jungTransform<-function( ocean_matrix ){
   
   #T <- (0.2 *  x) %*% J
   T <- 0.2*linear_regr_transform( t(J), x)
-  print(dim(T))
-  maxT <- max(max(T))  
-  minT <-min(min(T))
-  out <- (T-minT)/(maxT-minT)
-  #out <- T
+  #print(dim(T))
+  #maxT <- max(max(T))  
+  #minT <-min(min(T))
+  #out <- (T-minT)/(maxT-minT)
+  out <-T
   print(head(out))
   mjv<-colMeans(out) - rep(0.5,5)
   out <- apply( out, 1, function(z) z - mjv )
@@ -103,7 +103,7 @@ jtvf <- jungTransform(vf)
 
 print("before fitting")
 # fit generalized hyperbolic distribution
-ghfit<-fit.ghypmv( t(jtvf), lambda=1.8, alpha.bar = 1, reltol=5e-7 )
+ghfit<-fit.ghypmv( t(jtvf), lambda=1.3, alpha.bar = 1, reltol=5e-7 )
 
 print("fitting complete")
 # obtain diagonal of covariance produce univariate
@@ -130,10 +130,12 @@ print("fitting complete")
 # }
 # Use S4 OOP
 indexInOrderedVec<-function( val, vec ){
-  idx <- length(vec)
+  idx <- 1
   w <-which( vec > val)
   if (length(w)>0){
     idx <- head(w , 1)
+  } else {
+    idx <- length(vec)
   }
   idx
 }
@@ -206,7 +208,7 @@ getPersonalityType <- function( bfv, level, ghdist )
     g <- gamma[j]
     dist <- ghyp(mu=m,sigma=s, gamma=g,lambda=l,alpha.bar=a)
     dcuts <-univariateQuantiles( ncuts, dist)
-    dcuts[is.infinite(dcuts)]<-2.0
+    dcuts[is.infinite(dcuts)]<-5.0
     cuts[j,]<-dcuts
   }
   
@@ -221,7 +223,7 @@ getPersonalityType <- function( bfv, level, ghdist )
     x <- bfv[vr, ]
     for (j in 1:5){
       idx[j]<-indexInOrderedVec( x[j], cuts[j,])
-      ans <- ans + r^(j-1) * idx[j]
+      ans <- ans + r^(j-1) * (idx[j]-1)
     }
     out[vr] <- ans
   }

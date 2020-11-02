@@ -143,7 +143,8 @@ facet_transform<-function( v, post=""){
 
 
 # We want to sample from big five and then use
-# Richard Robins, Avshalom Caspi and Terrie E. Moffitt, "Two Personalities, One Relationship: 
+# Richard Robins, Avshalom Caspi and Terrie E. Moffitt, 
+# "Two Personalities, One Relationship: 
 # Both Partners' Personality Traits Shape the Quality
 # of Their Relationship" Journal of Personality and Social Psychology, 2000, 
 # Vol. 79 (2) p. 251-259
