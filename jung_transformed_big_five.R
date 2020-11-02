@@ -235,7 +235,7 @@ metric <- function( a, b ){
 }
 
 do_not_run <- function(){
-nsample <- 100000
+nsample <- 1000000
 vf <- matrix(rghyp( nsample, bigfiveDist),ncol=5)
 vm <- matrix(rghyp( nsample, bigfiveDist), ncol=5)
 
@@ -266,4 +266,29 @@ for (p in 1:nsample){
   }
 }
 
+}
+
+scale_count_matrix <- function( A, target_width ){
+  n<-dim(A)[1]
+  if ( n != dim(A)[2]){
+    return
+  }
+  if ( n %% target_width != 0 ){
+    return
+  }
+  B <- matrix( data=0, ncol=target_width, 
+              nrow = target_width )
+  K <- n/target_width
+  for (p in 1:target_width){
+    for (q in 1:target_width){
+    # determine the top left and bottom right
+      x0 <- K*p
+      x1 <- (K+1)*p -1
+      y0 <- K*q
+      y1 <- (K+1)*q -1
+      new_count <- sum(A[x0:x1,y0:y1])
+      B[p,q] <- new_count
+    }
+  }
+  B
 }
